@@ -1,10 +1,11 @@
-const {userModel} = require('../model/user')
-const userPostController = async(req, res)=>{
+const {userModel} = require('../model/user');
+const { errorHandler } = require('../utils/error');
+const userPostController = async(req, res,next)=>{
     try{
         const body = req.body;
         console.log(body);
-        if(!body){
-         return  res.status(400).json({message:'all field is required'})
+        if(!body.name || !body.email || !body.password){
+         return next(errorHandler(400,'All field is Require'))
         }
 
         const newUser = new userModel(body);
@@ -12,36 +13,36 @@ const userPostController = async(req, res)=>{
         res.status(200).json({message:'data save successfully!',userData:newUser});
     }
 catch(err){
-    res.status(500).json({message:'Internal error'});
+    next(err);
 }
 }
 
-const userGetController = async(req,res)=>{
+const userGetController = async(req,res,next)=>{
     try{
         const userData = await userModel.find();
         if(!userData){
-            return res.status(400).json({message:'data fetch error!'});
+            return next(errorHandler(400,'data fetch error!'));
         }
         res.status(200).json({message:'data fetch successfully', users:userData});
     }
     catch(err){
-        res.status(500).json({message:'data not fetch successfully'});
+        next(err);
     }
 }
-const userLogInController = async(req,res)=>{
+const userLogInController = async(req,res,next)=>{
     try{
         const {email, password} = req.body;
         const userData = await userModel.find({email});
         if(!userData){
-            return res.status(400).json({message:'User not ragister yet!'});
+            return next(errorHandler(400,'User not ragister yet!'));
         }
         if(!userData.password == password){
-         return  res.status(400).json({message:'password is incurrect'});
+         return   next(errorHandler(400,'Password is incurrect'));
         }
         res.status(200).json({message:'logIn successfully', user:userData});
     }
     catch(err){
-        res.status(500).json({message:'Internal error',Error:err});
+        next(err);
     }
 }
 module.exports = {userPostController,userGetController,userLogInController}
